@@ -1,42 +1,137 @@
-# Paidy Take-Home Coding Exercises
+# Paidy Take-Home Coding Exercises - API for managing users
 
-## What to expect?
-We understand that your time is valuable, and in anyone's busy schedule solving these exercises may constitute a fairly substantial chunk of time, so we really appreciate any effort you put in to helping us build a solid team.
-
-## What we are looking for?
-**Keep it simple**. Read the requirements and restrictions carefully and focus on solving the problem.
-
-**Treat it like production code**. That is, develop your software in the same way that you would for any code that is intended to be deployed to production. These may be toy exercises, but we really would like to get an idea of how you build code on a day-to-day basis.
-
-## How to submit?
-You can do this however you see fit - you can email us a tarball, a pointer to download your code from somewhere or just a link to a source control repository. Make sure your submission includes a small **README**, documenting any assumptions, simplifications and/or choices you made, as well as a short description of how to run the code and/or tests. Finally, to help us review your code, please split your commit history in sensible chunks (at least separate the initial provided code from your personal additions).
-
-## The Interview:
-After you submit your code, we will contact you to discuss and potentially arrange an in-person interview with some of the team.
-The interview will cover a wide range of technical and social aspects relevant to working at Paidy, but importantly for this exercise: we will also take the opportunity to step through your submitted code with you.
-
-## The Exercises:
-### 1. [Platform] Build an API for managing users
 The complete specification for this exercise can be found in the [UsersAPI.md](UsersAPI.md).
 
-### 2. [Frontend] Build a SPA that displays weather information
-The complete specification for this exercise can be found in the [Weather.md](Weather.md).
+Table of contents
+------------------
 
-### 3. [Platform] Build a local proxy for currency exchange rates
-The complete specification for this exercise can be found in the [Forex.md](Forex.md).
+  * [Technologies](#tech)
+  * [User representation](#user)
+  * [API](#api)
+  * [Scripts](#scripts)
+  * [How to run](#howtorun)
 
-### 4. [Mobile] Create a Grouped Card View
-The complete specification for this exercise can be found in the [GroupedCardView.md](GroupedCardView.md).
 
-## F.A.Q.
-1) _Is it OK to share your solutions publicly?_
-Yes, the questions are not prescriptive, the process and discussion around the code is the valuable part. You do the work, you own the code. Given we are asking you to give up your time, it is entirely reasonable for you to keep and use your solution as you see fit.
+<a name="tech" />
 
-2) _Should I do X?_
-For any value of X, it is up to you, we intentionally leave the problem a little open-ended and will leave it up to you to provide us with what you see as important. Just remember to keep it simple. If it's a feature that is going to take you a couple of days, it's not essential.
+## Technologies
 
-3) _Something is ambiguous, and I don't know what to do?_
-The first thing is: don't get stuck. We really don't want to trip you up intentionally, we are just attempting to see how you approach problems. That said, there are intentional ambiguities in the specifications, mainly to see how you fill in those gaps, and how you make design choices.
-If you really feel stuck, our first preference is for you to make a decision and document it with your submission - in this case there is really no wrong answer. If you feel it is not possible to do this, just send us an email and we will try to clarify or correct the question for you.
+IDE - IntelliJ IDEA
 
-Good luck!
+Web framework - [Scalatra](https://scalatra.org/)
+
+JSON implementation - [spray-json](https://github.com/spray/spray-json)
+
+Server - [Jetty](https://www.eclipse.org/jetty/)
+
+### Why Scalatra
+
+* open source framework
+* great for beginners
+* active community
+* easy to set up
+* extensive documentation
+
+<a name="user" />
+
+## User representation
+
+`User` is represented as JSON object with following structure:
+
+```
+{
+  "id": "a33ffccf-2648-4d0b-b1df-232427c809b3",
+  "userName": "john",
+  "emailAddress": "john@test.com",
+  "password": "be6eg1",
+  "metadata": {
+    "version": 1,
+    "createdAt": "2020-03-18T11:58:52.469938+01:00",
+    "updatedAt": "2020-03-18T11:58:52.469938+01:00",
+    "blockedAt": "",
+    "deletedAt": ""
+  }
+}
+```
+
+Serialization and deserialization is implemented in the file `UserJsonProtocol` in directory `users/src/main/scala/users/api/json`.
+
+<a name="api" />
+
+## API
+
+API is implemented in the file `UsersScalatraServlet` in directory `users/src/main/scala/users/api`. All routes start with prefix `/user`. Content type is json by default.
+
+### Routes:
+
+* `get(/users)` - returns all users
+* `put(/user/signup)` - sign uo a new user
+* `get(/user/:id)` - returns user with specific id
+* `post(/user/block)` - blocks user
+* `post(/user/unblock)` - unblocks user
+* `post(/user/update/email)` - updates user's email
+* `post(/user/update/password)` - updated user's password
+* `delete(/user/password/delete)` - removes user's password
+* `delete(/user/delete)` - deletes user
+
+<a name="scripts" />
+
+## Scripts
+
+There are several bash scripts in the directory `scripts` that can be used for testing purposes. They contain `curl` commands. Some of them take input parameters. Scripts will do something only if the server is running.
+
+To run a script open a terminal in the `script` folder and use command 
+
+`./name-of-the-script.sh`
+
+For running with parameters use command `./name-of-the-script.sh param1 param2`
+
+It might be necessary to make the script executable. Then use command 
+
+`chmod +x name-of-the-script.sh`
+
+Scripts in the folder:
+
+* `getid.sh`
+	- takes parameter `userId`
+	- returns json with user information
+* `signup.sh`
+	- takes no parameter, alredy contais data for mock user John
+	- returns json of signed up user
+* `signup_params.sh`
+	- takes parameters `userName`, `email`, `password`
+	- returns json of signed up user
+* `update_email.sh`
+	- takes parameters `userId`, `newEmail`
+	- returns json of user with updated email
+* `update_pass.sh`
+	- takes parameters `userId`, `newPassword`
+	- returns json of user with updated password
+* `reset_pass.sh`
+	- takes parameters `userId`
+	- returns json of user with empty password
+* `block.sh`
+	- takes parameters `userId`
+	- returns json of user with changed `blockedAt` timestamp
+* `unblock.sh`
+	- takes parameters `userId`
+	- returns json of user with empty `blockedAt` timestamp
+* `delete.sh`
+	- takes parameters `userId`
+	- returns status 200 if user was deleted
+
+<a name="howtorun" />
+
+## How to run
+
+From directory `jetty` run Jetty launcher with command
+
+`java -jar jetty-launcher.jar`
+
+Jetty server will start at port 8080. 
+
+Access it in a browser at URL `http://localhost:8080`.
+
+For testing purposes can be used prepared [scipts](#scripts).
+
+All users are available at `http://localhost:8080/users`.
